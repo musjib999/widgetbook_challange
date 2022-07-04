@@ -76,7 +76,7 @@ class _MyAppState extends State<MyApp> {
                           await api.welcomeToWidgetbook(message: name.text);
                       greet.greetUser(response);
                     } on UnexpectedException catch (e) {
-                      greet.greetUser('Error >>> ${e.toString()}');
+                      greet.greetUser('An Error occured >>> ${e.toString()}');
                     }
                   }
                 },
@@ -98,6 +98,7 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 10),
               Text(
                 greet.message,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 19,
                 ),

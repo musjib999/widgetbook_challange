@@ -1,8 +1,14 @@
 import 'package:argon_buttons_flutter/argon_buttons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:widgetbook_challenge/api/widgetbook_api.dart';
-import 'package:widgetbook_challenge/greet_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:widgetbook_challenge/bloc/greet_bloc.dart';
+import 'package:widgetbook_challenge/widgets/error_screen.dart';
+import 'package:widgetbook_challenge/widgets/initial_screen.dart';
+import 'package:widgetbook_challenge/widgets/loading_screen.dart';
+import 'package:widgetbook_challenge/widgets/success_screen.dart';
+
+// import 'package:flutter_bloc/flutter_bloc.dart';
+GreetBloc greetBloc = GreetBloc();
 
 /// The app.
 class App extends StatelessWidget {
@@ -13,12 +19,15 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Interview Challenge'),
+    return BlocProvider(
+      create: (context) => greetBloc,
+      child: MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Text('Interview Challenge'),
+          ),
+          body: const MyApp(),
         ),
-        body: const MyApp(),
       ),
     );
   }
@@ -34,94 +43,28 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final api = WidgetbookApi();
-  final name = TextEditingController();
-  static final RegExp nameRegExp = RegExp('[a-zA-Z]');
-  final _formKey = GlobalKey<FormState>();
-  final greet = Greet();
-
-  Future<void> greetUser() async {
-    try {
-      final response = await api.welcomeToWidgetbook(message: name.text);
-      greet.greetUser(response);
-    } on UnexpectedException catch (e) {
-      greet.greetError('An Error occured >>> ${e.toString()}');
-    }
+  TextEditingController name = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<GreetBloc, GreetState>(
+      bloc: greetBloc,
+      builder: (context, state) {
+        if (state is GreetInitial) {
+          return InitialScreen(name: name);
+        } else if (state is GreetLoading) {
+          return LoadingScreen(name: name);
+        } else if (state is GreetError) {
+          return ErrorScreen(name: name, error: state.message);
+        }
+        final message = state as GreetDone;
+        return SuccessScreen(name: name, greeting: message.greeting);
+      },
+    );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Observer(
-      builder: (_) {
-        return Form(
-          key: _formKey,
-          child: Container(
-            margin: const EdgeInsets.all(15),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextFormField(
-                  controller: name,
-                  validator: (value) => value!.isEmpty
-                      ? 'Enter Your Name'
-                      : (nameRegExp.hasMatch(value)
-                          ? null
-                          : 'Name cannot be a number'),
-                  decoration: const InputDecoration(
-                    hintText: 'Enter Name',
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.text,
-                ),
-                const SizedBox(height: 15),
-                ArgonButton(
-                  height: 40,
-                  width: 180,
-                  color: Colors.blue,
-                  borderRadius: 8,
-                  loader: Container(
-                    padding: const EdgeInsets.all(10),
-                    child: const CircularProgressIndicator(
-                      color: Colors.white,
-                      // size: loaderWidth ,
-                    ),
-                  ),
-                  onTap: (startLoading, stopLoading, btnState) async {
-                    if (_formKey.currentState!.validate()) {
-                      startLoading();
-                      await greetUser();
-                      stopLoading();
-                    }
-                  },
-                  child: const Text(
-                    'Submit',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                const Divider(),
-                const SizedBox(height: 15),
-                const Text(
-                  'Greeting Message',
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  greet.message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 19,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  void dispose() {
+    super.dispose();
+    greetBloc.close();
   }
 }

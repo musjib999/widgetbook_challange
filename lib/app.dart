@@ -1,14 +1,8 @@
-import 'package:argon_buttons_flutter/argon_buttons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:widgetbook_challenge/bloc/greet_bloc.dart';
-import 'package:widgetbook_challenge/widgets/error_screen.dart';
-import 'package:widgetbook_challenge/widgets/initial_screen.dart';
-import 'package:widgetbook_challenge/widgets/loading_screen.dart';
-import 'package:widgetbook_challenge/widgets/success_screen.dart';
-
-// import 'package:flutter_bloc/flutter_bloc.dart';
-GreetBloc greetBloc = GreetBloc();
+import 'package:widgetbook_challenge/global/constants.dart';
+import 'package:widgetbook_challenge/widgets/form_greeting.dart';
 
 /// The app.
 class App extends StatelessWidget {
@@ -46,19 +40,27 @@ class _MyAppState extends State<MyApp> {
   TextEditingController name = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GreetBloc, GreetState>(
+    return BlocListener<GreetBloc, GreetState>(
       bloc: greetBloc,
-      builder: (context, state) {
-        if (state is GreetInitial) {
-          return InitialScreen(name: name);
-        } else if (state is GreetLoading) {
-          return LoadingScreen(name: name);
+      listener: (context, state) {
+        if (state is GreetLoaded) {
+          name.clear();
+          popupService.showSnackBar(
+            context: context,
+            content: state.greeting,
+            isSuccess: true,
+          );
         } else if (state is GreetError) {
-          return ErrorScreen(name: name, error: state.message);
+          popupService.showSnackBar(
+            context: context,
+            content: state.message,
+            isSuccess: false,
+          );
         }
-        final message = state as GreetDone;
-        return SuccessScreen(name: name, greeting: message.greeting);
       },
+      child: FormScreen(
+        controller: name,
+      ),
     );
   }
 

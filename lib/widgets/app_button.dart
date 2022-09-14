@@ -21,7 +21,6 @@ class AppButton extends StatelessWidget {
       height: 40,
       width: 180,
       color: Colors.blue,
-      minWidth: 180,
       borderRadius: 8,
       loader: Container(
         padding: const EdgeInsets.all(10),

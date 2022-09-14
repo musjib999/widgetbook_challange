@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:widgetbook_challenge/global/constants.dart';
+import 'package:widgetbook_challenge/widgets/app_button.dart';
 
-import '../bloc/greet_bloc.dart';
-import 'app_button.dart';
+/// [FormScreen] class which contains a textfield and a button
+class FormScreen extends StatelessWidget {
+  /// Instance of [FormScreen] which requires a controller
+  const FormScreen({Key? key, required this.controller}) : super(key: key);
 
-class SuccessScreen extends StatelessWidget {
-  const SuccessScreen({Key? key, required this.name, required this.greeting})
-      : super(key: key);
-  final TextEditingController name;
-  final String greeting;
-
+  /// [FormScreen] property which is a [TextEditingController]
+  final TextEditingController controller;
   @override
   Widget build(BuildContext context) {
     final nameRegExp = RegExp('[a-zA-Z]');
@@ -22,7 +21,7 @@ class SuccessScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextFormField(
-              controller: name,
+              controller: controller,
               validator: (value) => value!.isEmpty
                   ? 'Enter Your Name'
                   : (nameRegExp.hasMatch(value)
@@ -39,29 +38,14 @@ class SuccessScreen extends StatelessWidget {
             AppButton(
               onTap: (startLoading, stopLoading, btnState) async {
                 if (_formKey.currentState!.validate()) {
-                  context.read<GreetBloc>().add(
-                        GreetUser(name: name.text),
-                      );
+                  startLoading();
+                  await greetService.greet(
+                    name: controller.text,
+                    context: context,
+                  );
+                  stopLoading();
                 }
               },
-            ),
-            const SizedBox(height: 15),
-            const Divider(),
-            const SizedBox(height: 15),
-            const Text(
-              'Greeting Message',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              greeting,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 19,
-              ),
             ),
           ],
         ),

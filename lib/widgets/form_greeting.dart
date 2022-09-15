@@ -20,6 +20,11 @@ class FormScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Text(
+              'Hello Flutter enthusiast!',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 10),
             TextFormField(
               controller: controller,
               validator: (value) => value!.isEmpty
